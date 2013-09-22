@@ -60,17 +60,17 @@ diff(black,_,onone).
 diff(white,_,onone).
 diff(_,black,onone).
 diff(_,white,onone).
-diff(C1, C2, O) :- 
-  color(C1,H1,L1), color(C2,H2,L2), 
-  DH is (H2 - H1) mod 6, 
-  DL is (L2 - L1) mod 3, 
+diff(C1, C2, O) :-
+  color(C1,H1,L1), color(C2,H2,L2),
+  DH is (H2 - H1) mod 6,
+  DL is (L2 - L1) mod 3,
   operation(O, DH,DL).
 
 
-% nextOp(+bloc, +color, +directionPointer, +codelChooser, -operation, -absc, 
+% nextOp(+bloc, +color, +directionPointer, +codelChooser, -operation, -absc,
 % -ord, -nextDirectionPointer, -nextCodelChooser)
 % nextOp(B,C,DP,CC,OP,X,Y,NDP,NCC) is true if C is black and OP is onone, or
-% if C is not black, and if while traversing color bloc B, 
+% if C is not black, and if while traversing color bloc B,
 % considering direction pointer DP and codel chooser CC, it outs
 % at position (X,Y), applying command OP, with new direction pointer NDP, and
 % new direction codel chooser NCC. It is false if interpreter
@@ -79,25 +79,25 @@ nextOp(B,C,DP,CC,O,X2,Y2, NDP, NCC) :-
   neq(C,black), neq(C,white),
   tryNextOp(B,C,DP,CC,O,X2,Y2,0,NDP,NCC).
 
-% tryNextOp(+bloc,+color, +directionPointer, +codelChooser, -opetation, -absc, 
+% tryNextOp(+bloc,+color, +directionPointer, +codelChooser, -opetation, -absc,
 % -ord, -nextDirectionPointer, -nextCodelChooser, ?numberOfTry)
-% tryNextOp(B,C,DP,CC,OP,X,Y,Try) is true if Try is lower than 8, and 
-% while traversing color bloc B, of color C, 
-% considering direction pointer DP, and codel chooser CC, it outs at position 
+% tryNextOp(B,C,DP,CC,OP,X,Y,Try) is true if Try is lower than 8, and
+% while traversing color bloc B, of color C,
+% considering direction pointer DP, and codel chooser CC, it outs at position
 % (X,Y), applying command OP, with new direction pointer NDP, and
-% new direction codel chooser NCC. 
+% new direction codel chooser NCC.
 %
 % If interpreter can not out with direction pointer DP and codel chooser CC,
 % it tries with next direction pointer and codel chooser, and increase Try by 1.
 tryNextOp(B,C,DP,CC,O,X2,Y2,Try,DP,CC):-
   Try < 8,
-  outbloc(B,DP,CC,X2,Y2), 
-  program(X2,Y2,C2), 
+  outbloc(B,DP,CC,X2,Y2),
+  program(X2,Y2,C2),
   neq(C2,black),
   diff(C,C2,O).
 tryNextOp(B,C,DP,CC,O,X2,Y2,Try,NDP,NCC):-
   Try < 8,
-  outbloc(B,DP,CC,X1,Y1), 
+  outbloc(B,DP,CC,X1,Y1),
   program(X1,Y1,black),
   Try2 is Try + 1,
   nextpointer(DP,CC,N1DP,N1CC),
@@ -125,23 +125,23 @@ outblocWhite(X,Y,DP,CC,X2,Y2,NDP,NCC) :- outblocWhitePro(X,Y,DP,CC,X2,Y2,NDP,NCC
 % outblocWhite(X1,Y1,DP,CC,X2,Y2,NDP,NCC,L) is true if, considering direction pointer DP, and starting position (X,Y)
 % the white bloc outs at coordinates (X2,Y2) with direction pointer NDP and codel chooser NCC, without passing
 % through any coordinate (X,Y) with direction pointer DP such that (X,Y,DP) is in L.
-outblocWhitePro(X,Y,DP,CC,X2,Y2,NDP,NCC,L) :- 
-  notmember((X,Y,DP),L), 
-  neighbour(X,Y,DP,X1,Y1), 
+outblocWhitePro(X,Y,DP,CC,X2,Y2,NDP,NCC,L) :-
+  notmember((X,Y,DP),L),
+  neighbour(X,Y,DP,X1,Y1),
   checkNeighbour(X,Y,DP,CC,X1,Y1,X2,Y2,NDP,NCC,[(X,Y,DP)|L]),!.
 
 % checkNeighbour(+abs,+ord,+directionPointer, +codelChooser, +absN, +ordN, -abs2, -ord2, -nextDirectionPointer, -nextCodelChooser, +proList)
-% checkNeighbour(X,Y,DP,CC,X1,Y1,X2,Y2,NDP,NCC,L) is true 
-% - if (X1,Y1) is a black coordinate, and after turning one time clockwise the direction pointer DP, 
-% and starting at position (X,Y), the white bloc outs at coordinates (X2,Y2) with direction pointer NDP 
-% and codel chooser cleft, without passing through any coordinate (X',Y') with direction 
+% checkNeighbour(X,Y,DP,CC,X1,Y1,X2,Y2,NDP,NCC,L) is true
+% - if (X1,Y1) is a black coordinate, and after turning one time clockwise the direction pointer DP,
+% and starting at position (X,Y), the white bloc outs at coordinates (X2,Y2) with direction pointer NDP
+% and codel chooser cleft, without passing through any coordinate (X',Y') with direction
 % pointer DP' such that (X',Y',DP') is in L.
-% - if (X1,Y1) is a white coordinate, and starting at position (X1,Y1), the white bloc outs at 
-% coordinates (X2,Y2) with direction pointer NDP and codel chooser NCC, without passing through 
+% - if (X1,Y1) is a white coordinate, and starting at position (X1,Y1), the white bloc outs at
+% coordinates (X2,Y2) with direction pointer NDP and codel chooser NCC, without passing through
 % any coordinate (X',Y') with direction pointer DP' such that (X',Y',DP') is in L.
 % - if (X1,Y1) is a neither a black nor a white coordinate, and X1 = X2, Y1 = Y2, DP = NDP, and CC = NCC.
-checkNeighbour(X,Y,DP,_,X1,Y1,X2,Y2,NDP,cleft,L) :- 
-  program(X1,Y1,black), 
+checkNeighbour(X,Y,DP,_,X1,Y1,X2,Y2,NDP,cleft,L) :-
+  program(X1,Y1,black),
   nextDirectionPointer(DP,NDP1),
   outblocWhitePro(X,Y,NDP1,cleft,X2,Y2,NDP,_,L),!.
 checkNeighbour(_,_,DP,CC,X1,Y1,X2,Y2,NDP,NCC,L) :- program(X1,Y1,white), outblocWhitePro(X1,Y1,DP,CC,X2,Y2,NDP,NCC,L),!.
@@ -150,9 +150,9 @@ checkNeighbour(_,_,DP,CC,X1,Y1,X1,Y1,DP,CC,_) :- program(X1,Y1,C), neq(C,white),
 % neighbour(+abs,+ord,+directionPointer,-abs1, -ord1)
 % neighbour(X,Y,DP,X1,Y1) is true if following direction pointer DP during one codel, starting at
 % (X,Y), it ends at (X1,Y1).
-neighbour(X,Y,dright,X1,Y)  :- X1 is X+1 .
-neighbour(X,Y,dleft,X1,Y)   :- X1 is X-1 .
-neighbour(X,Y,dtop,X,Y1)    :- Y1 is Y+1 .
+neighbour(X,Y,dright,X1,Y) :- X1 is X+1 .
+neighbour(X,Y,dleft,X1,Y) :- X1 is X-1 .
+neighbour(X,Y,dtop,X,Y1) :- Y1 is Y+1 .
 neighbour(X,Y,dbottom,X,Y1) :- Y1 is Y-1 .
 
 
@@ -167,13 +167,13 @@ bloc(X,Y,B) :- program(X,Y,C), blocpro(X,Y,C,B,[]).
 blocpro(_,_,black,[],_).
 blocpro(X,Y,C,[],_) :- program(X,Y,C1), neq(C,C1).
 blocpro(X,Y,_,[],L) :- memberchk((X,Y),L).
-blocpro(X,Y,C,[(X,Y)|B],L) :- 
+blocpro(X,Y,C,[(X,Y)|B],L) :-
   program(X,Y,C),
   notmember((X,Y),L),
   neq(C,black),
-  XM1 is X-1, 
-  XP1 is X+1, 
-  YM1 is Y-1, 
+  XM1 is X-1,
+  XP1 is X+1,
+  YM1 is Y-1,
   YP1 is Y+1,
   blocpro(XM1,Y,C,BL,[(X,Y)|L]),
   append(L,BL,BLL),
@@ -248,32 +248,32 @@ eqY(Y,(_,Y)).
 
 % maxXElem(+list,-absc)
 % maxXElem(L,X0,Y0) is true if L is a list of coordinates (X,Y)
-% each containing a unique X, if L contains (X0,Y0) 
-% and  X0 is the maximum value of X.
+% each containing a unique X, if L contains (X0,Y0)
+% and X0 is the maximum value of X.
 maxXElem([(X,Y)],X,Y).
 maxXElem([(X,Y)| H],X,Y) :- maxXElem(H,X2,_), X >= X2.
 maxXElem([(X,_)| H],X2,Y2) :- maxXElem(H,X2,Y2), X < X2.
 
 % minXElem(+list,-absc)
 % minXElem(L,X0,Y0) is true if L is a list of coordinates (X,Y)
-% each containing a unique X, if L contains (X0,Y0) 
-% and  X0 is the minimum value of X.
+% each containing a unique X, if L contains (X0,Y0)
+% and X0 is the minimum value of X.
 minXElem([(X,Y)],X,Y).
 minXElem([(X,Y)| H],X,Y) :- minXElem(H,X2,_), X =< X2.
 minXElem([(X,_)| H],X2,Y2) :- minXElem(H,X2,Y2), X > X2.
 
 % minYElem(+list,-ord)
 % minYElem(L,X0,Y0) is true if L is a list of coordinates (X,Y)
-% each containing a unique Y, if L contains (X0,Y0) 
-% and  Y0 is the maximum value of Y.
+% each containing a unique Y, if L contains (X0,Y0)
+% and Y0 is the maximum value of Y.
 maxYElem([(X,Y)],X,Y).
 maxYElem([(X,Y)| H],X,Y) :- maxYElem(H,_,Y2), Y >= Y2.
 maxYElem([(_,Y)| H],X2,Y2) :- maxYElem(H,X2,Y2), Y < Y2.
 
 % minYElem(+list,-ord)
 % minYElem(L,X0,Y0) is true if L is a list of coordinates (X,Y)
-% each containing a unique Y, if L contains (X0,Y0) 
-% and  Y0 is the minimum value of Y.
+% each containing a unique Y, if L contains (X0,Y0)
+% and Y0 is the minimum value of Y.
 minYElem([(X,Y)],X,Y).
 minYElem([(X,Y)| H],X,Y) :- minYElem(H,_,Y2), Y =< Y2.
 minYElem([(_,Y)| H],X2,Y2) :- minYElem(H,X2,Y2), Y > Y2.
@@ -344,7 +344,7 @@ curs(1,5).
 
 
 % operation(?operation, ?huediff, ?lightnessdiff)
-% operation(OP,DH,DL) is true if command OP corresponds to the step difference DH, and 
+% operation(OP,DH,DL) is true if command OP corresponds to the step difference DH, and
 % the darkness difference DL.
 operation(onone, 0,0).
 operation(opush, 0,1).
@@ -398,15 +398,15 @@ roll(L,N,M,LR) :- firstElems(L,N,L1,L2), roll(L1,M,L1R), append(L1R,L2,LR),!.
 % roll(L1,M,L2) is true if L2 is the list L1 where every elements
 % are rolled M times. One roll is moving the first elements from index 0 to last index.
 roll([],_,[]).
-roll(L,M,L) :- 
+roll(L,M,L) :-
   length(L,S),
-  W is M mod S, 
-  W == 0 . 
-roll([V|H],M,L2) :- 
-  length([V|H],S), 
+  W is M mod S,
+  W == 0 .
+roll([V|H],M,L2) :-
+  length([V|H],S),
   W is M mod S , W \= 0,
   M1 is M - 1,
-  append(H,[V],L1), 
+  append(H,[V],L1),
   roll(L1,M1,L2).
 
 % firstElems(+list,+size,+list1,+list2)
@@ -419,25 +419,25 @@ firstElems(L,N,L1,L2) :- append(L1,L2,L), length(L,S), M is min(N,S), length(L1,
 
 % next
 % next is true if the interpreter apply the next command of the input program.
-next :- 
-  curs(X,Y), 
-  program(X,Y,white), 
-  dp(DP), cc(CC), 
-  outblocWhite(X,Y,DP,CC,X2,Y2,NDP,NCC), 
-  retract(dp(DP)), retract(cc(CC)),
-  assert(dp(NDP)), assert(cc(NCC)),
-  retract(curs(X,Y)), 
-  assert(curs(X2,Y2)),!.
-next :- 
+next :-
   curs(X,Y),
-  program(X,Y,C), 
-  neq(C,white), 
-  bloc(X,Y,B), 
-  length(B,V), 
-  nextOp(B,C,DP,CC,O,X2,Y2,NDP,NCC), 
+  program(X,Y,white),
+  dp(DP), cc(CC),
+  outblocWhite(X,Y,DP,CC,X2,Y2,NDP,NCC),
   retract(dp(DP)), retract(cc(CC)),
   assert(dp(NDP)), assert(cc(NCC)),
-  retract(curs(X,Y)), 
+  retract(curs(X,Y)),
+  assert(curs(X2,Y2)),!.
+next :-
+  curs(X,Y),
+  program(X,Y,C),
+  neq(C,white),
+  bloc(X,Y,B),
+  length(B,V),
+  nextOp(B,C,DP,CC,O,X2,Y2,NDP,NCC),
+  retract(dp(DP)), retract(cc(CC)),
+  assert(dp(NDP)), assert(cc(NCC)),
+  retract(curs(X,Y)),
   assert(curs(X2,Y2)),
   applyOp(O,V),!.
 
