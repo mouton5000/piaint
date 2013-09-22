@@ -429,8 +429,9 @@ applyOp(o2black,_) :-
   assert(pile(H)),!.
 applyOp(o2color,_) :- 
   retract(pile([X,Y,A,B|H])), 
-  retract(program(X,Y,_)),
+  program(X,Y,_),
   color(C,A,B),
+  retract(program(X,Y,_)),
   assert(program(X,Y,C)),
   assert(pile(H)),!.
 applyOp(_,_).
