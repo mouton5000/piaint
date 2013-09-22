@@ -67,75 +67,85 @@ diff(C1, C2, O) :-
   operation(O, DH,DL).
 
 
-% nextOp(+bloc, +color, -operation, -absc, -ord)
-% nextOp(B,C,OP,X,Y) is true if C is black and OP is onone, or
-% if C is not black, and if while traversing color bloc B, it outs
-% at position (X,Y), applying command OP. It is false if interpreter
-% cannot go out of the bloc. The direction pointer and the codel chooser
-% can change while applying nextOp.
-nextOp(_,black,onone,_,_).
-nextOp(B,C,O,X2,Y2) :-
+% nextOp(+bloc, +color, +directionPointer, +codelChooser, -operation, -absc, 
+% -ord, -nextDirectionPointer, -nextCodelChooser)
+% nextOp(B,C,DP,CC,OP,X,Y,NDP,NCC) is true if C is black and OP is onone, or
+% if C is not black, and if while traversing color bloc B, 
+% considering direction pointer DP and codel chooser CC, it outs
+% at position (X,Y), applying command OP, with new direction pointer NDP, and
+% new direction codel chooser NCC. It is false if interpreter
+% cannot go out of the bloc.
+nextOp(B,C,DP,CC,O,X2,Y2, NDP, NCC) :-
   neq(C,black), neq(C,white),
-  tryNextOp(B,C,O,X2,Y2,0).
+  tryNextOp(B,C,DP,CC,O,X2,Y2,0,NDP,NCC).
 
-% tryNextOp(+bloc,+color,-opetation, -absc, -ord, ?numberOfTry)
-% tryNextOp(B,C,OP,X,Y,Try) is true if Try is lower than 8, and 
-% while traversing color bloc B, of color C, it outs at position 
-% (X,Y), applying command OP. The direction pointer and the codel chooser
-% can change while applying tryNextOp.
+% tryNextOp(+bloc,+color, +directionPointer, +codelChooser, -opetation, -absc, 
+% -ord, -nextDirectionPointer, -nextCodelChooser, ?numberOfTry)
+% tryNextOp(B,C,DP,CC,OP,X,Y,Try) is true if Try is lower than 8, and 
+% while traversing color bloc B, of color C, 
+% considering direction pointer DP, and codel chooser CC, it outs at position 
+% (X,Y), applying command OP, with new direction pointer NDP, and
+% new direction codel chooser NCC. 
 %
-% If interpreter can not out with current direction pointer and codel chooser,
-% they change, and Try is increased by 1.
-% 
-tryNextOp(B,C,O,X2,Y2,Try):-
+% If interpreter can not out with direction pointer DP and codel chooser CC,
+% it tries with next direction pointer and codel chooser, and increase Try by 1.
+tryNextOp(B,C,DP,CC,O,X2,Y2,Try,DP,CC):-
   Try < 8,
-  outbloc(B,X2,Y2), 
+  outbloc(B,DP,CC,X2,Y2), 
   program(X2,Y2,C2), 
   neq(C2,black),
   diff(C,C2,O).
-tryNextOp(B,C,O,X2,Y2,Try):-
+tryNextOp(B,C,DP,CC,O,X2,Y2,Try,NDP,NCC):-
   Try < 8,
-  outbloc(B,X1,Y1), 
+  outbloc(B,DP,CC,X1,Y1), 
   program(X1,Y1,black),
   Try2 is Try + 1,
-  mvcur,
-  tryNextOp(B,C,O,X2,Y2,Try2).
+  nextpointer(DP,CC,N1DP,N1CC),
+  tryNextOp(B,C,N1DP,N1CC,O,X2,Y2,Try2,NDP,NCC).
 
-% outbloc(+bloc,-absc,-ord)
-% outbloc(B,X,Y) is true if, considering current direction pointer and codel chooser,
+% outbloc(+bloc,+directionPointer, +codelChooser, -absc,-ord)
+% outbloc(B,DP,CC,X,Y) is true if, considering direction pointer DP and codel chooser CC,
 % the bloc out at coordinates (X,Y).
-outbloc(B,X,Y) :- dp(dright), maxXList(B,BR), cc(cleft), maxYElem(BR,X1,Y), X is X1+1 .
-outbloc(B,X,Y) :- dp(dright), maxXList(B,BR), cc(cright), minYElem(BR,X1,Y), X is X1+1 .
-outbloc(B,X,Y) :- dp(dleft), minXList(B,BR), cc(cleft), minYElem(BR,X1,Y), X is X1-1 .
-outbloc(B,X,Y) :- dp(dleft), minXList(B,BR), cc(cright), maxYElem(BR,X1,Y), X is X1-1 .
-outbloc(B,X,Y) :- dp(dbottom), minYList(B,BR), cc(cleft), maxXElem(BR,X,Y1), Y is Y1-1 .
-outbloc(B,X,Y) :- dp(dbottom), minYList(B,BR), cc(cright), minXElem(BR,X,Y1), Y is Y1-1 .
-outbloc(B,X,Y) :- dp(dtop), maxYList(B,BR), cc(cleft), minXElem(BR,X,Y1), Y is Y1+1 .
-outbloc(B,X,Y) :- dp(dtop), maxYList(B,BR), cc(cright), maxXElem(BR,X,Y1), Y is Y1+1 .
+outbloc(B,dright,cleft,X,Y) :- maxXList(B,BR), maxYElem(BR,X1,Y), X is X1+1 .
+outbloc(B,dright,cright,X,Y) :- maxXList(B,BR), minYElem(BR,X1,Y), X is X1+1 .
+outbloc(B,dleft,cleft,X,Y) :- minXList(B,BR), minYElem(BR,X1,Y), X is X1-1 .
+outbloc(B,dleft,cright,X,Y) :- minXList(B,BR), maxYElem(BR,X1,Y), X is X1-1 .
+outbloc(B,dbottom,cleft,X,Y) :- minYList(B,BR), maxXElem(BR,X,Y1), Y is Y1-1 .
+outbloc(B,dbottom,cright,X,Y) :- minYList(B,BR), minXElem(BR,X,Y1), Y is Y1-1 .
+outbloc(B,dtop,cleft,X,Y) :- maxYList(B,BR), minXElem(BR,X,Y1), Y is Y1+1 .
+outbloc(B,dtop,cright,X,Y) :- maxYList(B,BR), maxXElem(BR,X,Y1), Y is Y1+1 .
 
-% outblocWhite(+absc,+ord, -absc2, -ord2)
-% outblocWhite(X1,Y1,X2,Y2) is true if, considering current direction pointer,
-% the white bloc outs at coordinates (X2,Y2) if starting at (X1,Y1).
-outblocWhite(X,Y,X2,Y2) :- outblocWhitePro(X,Y,X2,Y2,[]).
+% outblocWhite(+absc, +ord, +directionPointer, +codelChooser, -absc2, -ord2, -nextDirectionPointer, -nextCodelChooser)
+% outblocWhite(X1,Y1,DP,CC,X2,Y2,NDP,NCC) is true if, considering direction pointer DP,
+% and starting position (X,Y), the white bloc outs at coordinates (X2,Y2)
+% with direction pointer NDP, and codel chooser NCC.
+outblocWhite(X,Y,DP,CC,X2,Y2,NDP,NCC) :- outblocWhitePro(X,Y,DP,CC,X2,Y2,NDP,NCC,[]).
 
-% outblocWhite(+absc,+ord, -absc2, -ord2, +ProList)
-% outblocWhite(X1,Y1,X2,Y2,L) is true if, considering current direction pointer,
-% the white bloc outs at coordinates (X2,Y2) if starting at (X1,Y1) without passing
+% outblocWhite(+absc,+ord, +directionPointer, +codelChooser, -absc2, -ord2, -nextDirectionPointer, -nextCodelChooser, +ProList)
+% outblocWhite(X1,Y1,DP,CC,X2,Y2,NDP,NCC,L) is true if, considering direction pointer DP, and starting position (X,Y)
+% the white bloc outs at coordinates (X2,Y2) with direction pointer NDP and codel chooser NCC, without passing
 % through any coordinate (X,Y) with direction pointer DP such that (X,Y,DP) is in L.
-outblocWhitePro(X,Y,X2,Y2,L) :- 
-  dp(DP), 
+outblocWhitePro(X,Y,DP,CC,X2,Y2,NDP,NCC,L) :- 
   notmember((X,Y,DP),L), 
   neighbour(X,Y,DP,X1,Y1), 
-  checkNeighbour(X,Y,X1,Y1,X2,Y2,[(X,Y,DP)|L]),!.
+  checkNeighbour(X,Y,DP,CC,X1,Y1,X2,Y2,NDP,NCC,[(X,Y,DP)|L]),!.
 
-% checkNeighbour(+abs,+ord,+absN, +ordN, -abs2, -ord2, +proList)
-% checkNeighbour(X,Y,X1,Y1,X2,Y2,L) is true if (X1,Y1) is a black coordinate, and 
-% after changing the direction pointer, the white bloc outs at coordinates (X2,Y2) 
-% if starting at (X1,Y1) without passing through any coordinate (X,Y) with direction 
-% pointer DP such that (X,Y,DP) is in L.
-checkNeighbour(X,Y,X1,Y1,X2,Y2,L) :- program(X1,Y1,black), mvcurChgDP, outblocWhitePro(X,Y,X2,Y2,L),!.
-checkNeighbour(_,_,X1,Y1,X2,Y2,L) :- program(X1,Y1,white), outblocWhitePro(X1,Y1,X2,Y2,L),!.
-checkNeighbour(_,_,X1,Y1,X1,Y1,_) :- program(X1,Y1,C), neq(C,white), neq(C,black), !.
+% checkNeighbour(+abs,+ord,+directionPointer, +codelChooser, +absN, +ordN, -abs2, -ord2, -nextDirectionPointer, -nextCodelChooser, +proList)
+% checkNeighbour(X,Y,DP,CC,X1,Y1,X2,Y2,NDP,NCC,L) is true 
+% - if (X1,Y1) is a black coordinate, and after turning one time clockwise the direction pointer DP, 
+% and starting at position (X,Y), the white bloc outs at coordinates (X2,Y2) with direction pointer NDP 
+% and codel chooser cleft, without passing through any coordinate (X',Y') with direction 
+% pointer DP' such that (X',Y',DP') is in L.
+% - if (X1,Y1) is a white coordinate, and starting at position (X1,Y1), the white bloc outs at 
+% coordinates (X2,Y2) with direction pointer NDP and codel chooser NCC, without passing through 
+% any coordinate (X',Y') with direction pointer DP' such that (X',Y',DP') is in L.
+% - if (X1,Y1) is a neither a black nor a white coordinate, and X1 = X2, Y1 = Y2, DP = NDP, and CC = NCC.
+checkNeighbour(X,Y,DP,_,X1,Y1,X2,Y2,NDP,cleft,L) :- 
+  program(X1,Y1,black), 
+  nextDirectionPointer(DP,NDP1),
+  outblocWhitePro(X,Y,NDP1,cleft,X2,Y2,NDP,_,L),!.
+checkNeighbour(_,_,DP,CC,X1,Y1,X2,Y2,NDP,NCC,L) :- program(X1,Y1,white), outblocWhitePro(X1,Y1,DP,CC,X2,Y2,NDP,NCC,L),!.
+checkNeighbour(_,_,DP,CC,X1,Y1,X1,Y1,DP,CC,_) :- program(X1,Y1,C), neq(C,white), neq(C,black), !.
 
 % neighbour(+abs,+ord,+directionPointer,-abs1, -ord1)
 % neighbour(X,Y,DP,X1,Y1) is true if following direction pointer DP during one codel, starting at
@@ -150,12 +160,6 @@ neighbour(X,Y,dbottom,X,Y1) :- Y1 is Y-1 .
 % bloc(X,Y,B) is true if B is the bloc containing coordinate (X,Y)
 bloc(X,Y,B) :- program(X,Y,C), blocpro(X,Y,C,B,[]).
 
-/* 
-  blocpro(X,Y,C,B,L) unifie B avec le bloc de couleur C non noire
-  contenant la case (X,Y), mais aucune case de la liste L.
-  B est vide si la couleur est noire, si (X,Y) n'est pas de couleur C
-  ou si (X,Y) est dans L.
-*/
 % blocpro(+abs,+ord,+color,-bloc,+listpro)
 % blocpro(X,Y,C,B,L) is true if B is the bloc containing coordinate (X,Y)
 % with color C, if every coordinate in L is prohibited (and is a border of
@@ -321,14 +325,6 @@ toggleCodelChooser(ICC,NCC) :- codelchooser(ICC,ICCi), NCCi is (ICCi + 1) mod 2,
 nextpointer(IDP, cright, NDP, cleft) :- nextDirectionPointer(IDP,NDP).
 nextpointer(DP, cleft, DP, cright).
 
-% mvcurChgDP
-% mvcurChgDP is true the current direction pointer and the current codel chooser are changed until the direction pointer is changed.
-mvcurChgDP :- dp(DP), mvcur, dp(DP2), DP = DP2, mvcur,!.
-mvcurChgDP.
-
-% mvcur is true if the current direction pointer and the current codel chooser are changed one time.
-mvcur :- dp(DP), cc(CC), nextpointer(DP,CC,NDP,NCC), retract(dp(DP)), assert(dp(NDP)), retract(cc(CC)), assert(cc(NCC)),!.
-
 % moveDp(+number)
 % moveDp(V) is true if the direction pointer is moved clockwise V times.
 moveDp(V) :- V < 0, retract(dp(DP)), previousDirectionPointer(DP,NDP), assert(dp(NDP)), V1 is V + 1, moveDp(V1),!.
@@ -423,8 +419,27 @@ firstElems(L,N,L1,L2) :- append(L1,L2,L), length(L,S), M is min(N,S), length(L1,
 
 % next
 % next is true if the interpreter apply the next command of the input program.
-next :- curs(X,Y), program(X,Y,white), outblocWhite(X,Y,X2,Y2), retract(curs(X,Y)), assert(curs(X2,Y2)),!.
-next :- curs(X,Y), program(X,Y,C), neq(C,white), bloc(X,Y,B), length(B,V), nextOp(B,C,O,X2,Y2), retract(curs(X,Y)), assert(curs(X2,Y2)),applyOp(O,V),!.
+next :- 
+  curs(X,Y), 
+  program(X,Y,white), 
+  dp(DP), cc(CC), 
+  outblocWhite(X,Y,DP,CC,X2,Y2,NDP,NCC), 
+  retract(dp(DP)), retract(cc(CC)),
+  assert(dp(NDP)), assert(cc(NCC)),
+  retract(curs(X,Y)), 
+  assert(curs(X2,Y2)),!.
+next :- 
+  curs(X,Y),
+  program(X,Y,C), 
+  neq(C,white), 
+  bloc(X,Y,B), 
+  length(B,V), 
+  nextOp(B,C,DP,CC,O,X2,Y2,NDP,NCC), 
+  retract(dp(DP)), retract(cc(CC)),
+  assert(dp(NDP)), assert(cc(NCC)),
+  retract(curs(X,Y)), 
+  assert(curs(X2,Y2)),
+  applyOp(O,V),!.
 
 % readProgram
 % readProgram is true if the input program is interpreted.
